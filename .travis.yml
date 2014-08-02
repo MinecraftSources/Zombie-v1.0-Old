@@ -11,5 +11,5 @@ branches:
 
 env:
   global:
-    - secure: "replaceme"
-    - secure: "replaceme2"
+    - secure: "BQc+yCKQWkDG8YwNdUOnjdHQaA0KXW2xJ2R+gIRGUEnci36KA0mxaxquE5slAgFBNE1p0hg8BXWN7OyNlWdyVYhfP2ML30O0WqRd1kXZoM2aiunqFwQ5oVczvm6eR2QaINPtindwBpFG/833iJ0nvhlpTq9cDdFNbhA61ZfmgJc="
+    - secure: "MpAUG8wXMNC9QwAotxf5uCQ+PAf/rlK4ReejRxqpnLWaPJXsiuzTKDLrPnf8oiajoRPMpRbeWzeL1tGakEuKT1jSlTBufD7ep8v/VHAr8stkRkt3LPAS6ZWGEA3goBfMQ0BBDuOkZVB0j26vs3Ly5UFk1k/67oyLdrUzPZe/6uQ="

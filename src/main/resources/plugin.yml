@@ -1,0 +1,6 @@
+name: ${project.name}
+version: ${project.version}
+author: rmb938
+main: ${project.groupId}.bukkit.${project.artifactId}
+load: STARTUP
+website: https://github.com/MultiNodeMinecraftNetwork
