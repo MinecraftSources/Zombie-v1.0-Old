@@ -62,6 +62,21 @@
                                 <includes>
                                     <include>com.rmb938.mn2.docker:MN2Database:*</include>
                                     <include>org.json:json:*</include>
+
+                                    <!-- Docker-Java -->
+
+                                    <include>com.github.docker-java:docker-java:*</include>
+                                    <include>com.fasterxml.jackson.jaxrs:*:*</include>
+                                    <include>com.fasterxml.jackson.core:*:*</include>
+                                    <include>com.fasterxml.jackson.module:*:*</include>
+                                    <include>com.sun.jersey:*:*</include>
+                                    <include>com.sun.jersey.contribs:*:*</include>
+                                    <include>org.apache.httpcomponents:*:*</include>
+                                    <include>org.apache.commons:commons-pool2:*</include>
+                                    <include>commons-logging:commons-logging:*</include>
+                                    <include>com.google.guava:guava:*</include>
+                                    <include>org.slf4j:slf4j-api:*</include>
+                                    <include>org.slf4j:jul-to-slf4j:*</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
@@ -99,6 +114,11 @@
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
             <version>1.7.9-R0.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java</artifactId>
+            <version>0.9.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

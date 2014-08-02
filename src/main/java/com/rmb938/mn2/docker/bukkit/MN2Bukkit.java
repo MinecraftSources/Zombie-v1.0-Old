@@ -1,5 +1,8 @@
 package com.rmb938.mn2.docker.bukkit;
 
+import com.github.dockerjava.client.DockerClient;
+import com.github.dockerjava.client.model.ContainerInspectResponse;
+import com.github.dockerjava.client.model.ExposedPort;
 import com.mongodb.ServerAddress;
 import com.rabbitmq.client.Address;
 import com.rmb938.mn2.docker.db.database.NodeLoader;
@@ -106,6 +109,17 @@ public class MN2Bukkit extends JavaPlugin {
         worldCreator.environment(org.bukkit.World.Environment.valueOf(world.getEnvironment().name()));
         if (world.getGenerator() != null) {
             worldCreator.generator(world.getGenerator());
+        }
+
+        DockerClient dockerClient = new DockerClient("http://"+server.getNode().getAddress()+":4243");
+        ContainerInspectResponse inspectResponse = dockerClient.inspectContainerCmd(server.getContainerId()).exec();
+        for (ExposedPort exposedPort : inspectResponse.getHostConfig().getPortBindings().getBindings().keySet()) {
+            if (exposedPort.getPort() == 25565) {
+                int hostPort = inspectResponse.getHostConfig().getPortBindings().getBindings().get(exposedPort).getHostPort();
+                server.setPort(hostPort);
+                serverLoader.saveEntity(server);
+                break;
+            }
         }
 
         getServer().getScheduler().runTaskTimer(this, () -> {
