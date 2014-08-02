@@ -5,12 +5,15 @@ import com.rabbitmq.client.Address;
 import com.rmb938.mn2.docker.db.database.NodeLoader;
 import com.rmb938.mn2.docker.db.database.ServerLoader;
 import com.rmb938.mn2.docker.db.database.ServerTypeLoader;
+import com.rmb938.mn2.docker.db.entity.MN2Player;
 import com.rmb938.mn2.docker.db.entity.MN2Server;
 import com.rmb938.mn2.docker.db.entity.MN2World;
 import com.rmb938.mn2.docker.db.mongo.MongoDatabase;
 import com.rmb938.mn2.docker.db.rabbitmq.RabbitMQ;
 import org.bson.types.ObjectId;
+import org.bukkit.Bukkit;
 import org.bukkit.WorldCreator;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
@@ -19,6 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MN2Bukkit extends JavaPlugin {
+
+    private ServerLoader serverLoader;
+    private MN2Server server;
 
     @Override
     public void onEnable() {
@@ -31,7 +37,7 @@ public class MN2Bukkit extends JavaPlugin {
 
         if (hosts == null) {
             getLogger().severe("MONGO_HOSTS is not set.");
-            System.exit(0);
+            getServer().shutdown();
             return;
         }
         List<ServerAddress> mongoAddresses = new ArrayList<ServerAddress>();
@@ -48,7 +54,7 @@ public class MN2Bukkit extends JavaPlugin {
 
         if (mongoAddresses.isEmpty()) {
             getLogger().severe("No valid mongo addresses");
-            System.exit(0);
+            getServer().shutdown();
             return;
         }
         getLogger().info("Setting up mongo database mn2");
@@ -79,18 +85,18 @@ public class MN2Bukkit extends JavaPlugin {
             rabbitMQ = new RabbitMQ(rabbitAddresses, username, password);
         } catch (IOException e) {
             e.printStackTrace();
-            System.exit(0);
+            getServer().shutdown();
             return;
         }
 
         NodeLoader nodeLoader = new NodeLoader(mongoDatabase);
         ServerTypeLoader serverTypeLoader = new ServerTypeLoader(mongoDatabase);
-        ServerLoader serverLoader = new ServerLoader(mongoDatabase, nodeLoader, serverTypeLoader);
+        serverLoader = new ServerLoader(mongoDatabase, nodeLoader, serverTypeLoader);
 
-        MN2Server server = serverLoader.loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
+        server = serverLoader.loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
         if (server == null) {
             getLogger().severe("Could not find server data");
-            System.exit(0);
+            getServer().shutdown();
             return;
         }
 
@@ -102,11 +108,25 @@ public class MN2Bukkit extends JavaPlugin {
             worldCreator.generator(world.getGenerator());
         }
 
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            server.getPlayers().clear();
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                MN2Player mn2Player = new MN2Player();
+                mn2Player.setUuid(player.getUniqueId());
+                mn2Player.setPlayerName(player.getName());
+                mn2Player.setCurrentServer(server);
+            }
+            server.setLastUpdate(System.currentTimeMillis());
+            serverLoader.saveEntity(server);
+        }, 200L, 200L);
     }
 
     @Override
     public void onDisable() {
         getLogger().info("Stopping MN2 Bukkit");
+        getServer().getScheduler().cancelAllTasks();
+
+        serverLoader.removeEntity(server);
     }
 
 }
