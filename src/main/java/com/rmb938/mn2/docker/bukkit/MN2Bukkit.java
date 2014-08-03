@@ -33,9 +33,6 @@ public class MN2Bukkit extends JavaPlugin {
     public void onEnable() {
         getLogger().info("Starting MN2 Bukkit");
 
-        getLogger().info("Unloading default world");
-        getServer().unloadWorld(getServer().getWorlds().get(0), false);
-
         String hosts = System.getenv("MONGO_HOSTS");
 
         if (hosts == null) {
@@ -113,9 +110,10 @@ public class MN2Bukkit extends JavaPlugin {
 
         DockerClient dockerClient = new DockerClient("http://"+server.getNode().getAddress()+":4243");
         ContainerInspectResponse inspectResponse = dockerClient.inspectContainerCmd(server.getContainerId()).exec();
-        for (ExposedPort exposedPort : inspectResponse.getHostConfig().getPortBindings().getBindings().keySet()) {
+        getLogger().info(""+inspectResponse.getNetworkSettings().getPorts());
+        for (ExposedPort exposedPort : inspectResponse.getNetworkSettings().getPorts().getBindings().keySet()) {
             if (exposedPort.getPort() == 25565) {
-                int hostPort = inspectResponse.getHostConfig().getPortBindings().getBindings().get(exposedPort).getHostPort();
+                int hostPort = inspectResponse.getNetworkSettings().getPorts().getBindings().get(exposedPort).getHostPort();
                 server.setPort(hostPort);
                 serverLoader.saveEntity(server);
                 break;
@@ -123,6 +121,12 @@ public class MN2Bukkit extends JavaPlugin {
         }
 
         getServer().getScheduler().runTaskTimer(this, () -> {
+            if (serverLoader.loadEntity(server.get_id()) == null) {
+                getLogger().severe("Couldn't find server data stopping server");
+                getServer().shutdown();
+                return;
+            }
+
             server.getPlayers().clear();
             for (Player player : Bukkit.getOnlinePlayers()) {
                 MN2Player mn2Player = new MN2Player();
