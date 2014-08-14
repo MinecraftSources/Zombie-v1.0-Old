@@ -1,7 +1,7 @@
 package com.rmb938.mn2.docker.bukkit;
 
 import com.github.dockerjava.client.DockerClient;
-import com.github.dockerjava.client.model.ContainerInspectResponse;
+import com.github.dockerjava.client.command.InspectContainerResponse;
 import com.github.dockerjava.client.model.ExposedPort;
 import com.mongodb.ServerAddress;
 import com.rabbitmq.client.Address;
@@ -109,7 +109,7 @@ public class MN2Bukkit extends JavaPlugin {
         }
 
         DockerClient dockerClient = new DockerClient("http://"+server.getNode().getAddress()+":4243");
-        ContainerInspectResponse inspectResponse = dockerClient.inspectContainerCmd(server.getContainerId()).exec();
+        InspectContainerResponse inspectResponse = dockerClient.inspectContainerCmd(server.getContainerId()).exec();
         getLogger().info(""+inspectResponse.getNetworkSettings().getPorts());
         for (ExposedPort exposedPort : inspectResponse.getNetworkSettings().getPorts().getBindings().keySet()) {
             if (exposedPort.getPort() == 25565) {
