@@ -121,11 +121,23 @@ public class MN2Bukkit extends JavaPlugin {
         }
 
         getServer().getScheduler().runTaskTimer(this, () -> {
-            if (serverLoader.loadEntity(server.get_id()) == null) {
+            MN2Server localServer = serverLoader.loadEntity(server.get_id());
+            if (localServer == null) {
                 getLogger().severe("Couldn't find server data stopping server");
                 getServer().shutdown();
                 return;
             }
+            if (localServer.getNode() == null) {
+                getLogger().severe("Couldn't find node data stopping server");
+                getServer().shutdown();
+                return;
+            }
+            if (localServer.getServerType() == null) {
+                getLogger().severe("Couldn't find type data stopping server");
+                getServer().shutdown();
+                return;
+            }
+
 
             server.getPlayers().clear();
             for (Player player : Bukkit.getOnlinePlayers()) {
