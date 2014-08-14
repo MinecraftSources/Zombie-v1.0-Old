@@ -5,9 +5,7 @@ import com.github.dockerjava.client.model.ContainerInspectResponse;
 import com.github.dockerjava.client.model.ExposedPort;
 import com.mongodb.ServerAddress;
 import com.rabbitmq.client.Address;
-import com.rmb938.mn2.docker.db.database.NodeLoader;
-import com.rmb938.mn2.docker.db.database.ServerLoader;
-import com.rmb938.mn2.docker.db.database.ServerTypeLoader;
+import com.rmb938.mn2.docker.db.database.*;
 import com.rmb938.mn2.docker.db.entity.MN2Player;
 import com.rmb938.mn2.docker.db.entity.MN2Server;
 import com.rmb938.mn2.docker.db.entity.MN2World;
@@ -90,7 +88,9 @@ public class MN2Bukkit extends JavaPlugin {
         }
 
         NodeLoader nodeLoader = new NodeLoader(mongoDatabase);
-        ServerTypeLoader serverTypeLoader = new ServerTypeLoader(mongoDatabase);
+        PluginLoader pluginLoader = new PluginLoader(mongoDatabase);
+        WorldLoader worldLoader = new WorldLoader(mongoDatabase);
+        ServerTypeLoader serverTypeLoader = new ServerTypeLoader(mongoDatabase, pluginLoader, worldLoader);
         serverLoader = new ServerLoader(mongoDatabase, nodeLoader, serverTypeLoader);
 
         server = serverLoader.loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
@@ -144,7 +144,8 @@ public class MN2Bukkit extends JavaPlugin {
         getLogger().info("Stopping MN2 Bukkit");
         getServer().getScheduler().cancelAllTasks();
 
-        serverLoader.removeEntity(server);
+        server.setLastUpdate(0);
+        serverLoader.saveEntity(server);
     }
 
 }
