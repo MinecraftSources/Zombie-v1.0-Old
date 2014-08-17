@@ -61,7 +61,6 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.rmb938.mn2.docker:MN2Database:*</include>
-                                    <include>org.json:json:*</include>
 
                                     <!-- Docker-Java -->
 
@@ -104,11 +103,6 @@
             <groupId>com.rmb938.mn2.docker</groupId>
             <artifactId>MN2Database</artifactId>
             <version>1.0.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20140107</version>
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
