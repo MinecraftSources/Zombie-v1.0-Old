@@ -1,8 +1,10 @@
 package com.rmb938.mn2.docker.bukkit;
 
-import com.github.dockerjava.client.DockerClient;
-import com.github.dockerjava.client.command.InspectContainerResponse;
-import com.github.dockerjava.client.model.ExposedPort;
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.core.DockerClientConfig;
+import com.github.dockerjava.core.DockerClientImpl;
 import com.mongodb.ServerAddress;
 import com.rabbitmq.client.Address;
 import com.rmb938.mn2.docker.db.database.*;
@@ -79,7 +81,7 @@ public class MN2Bukkit extends JavaPlugin {
 
         RabbitMQ rabbitMQ = null;
         try {
-            getLogger().info("Setting up RabbitMQ " + username + " " + password);
+            getLogger().info("Setting up RabbitMQ");
             rabbitMQ = new RabbitMQ(rabbitAddresses, username, password);
         } catch (IOException e) {
             e.printStackTrace();
@@ -108,7 +110,10 @@ public class MN2Bukkit extends JavaPlugin {
             worldCreator.generator(world.getGenerator());
         }
 
-        DockerClient dockerClient = new DockerClient("http://"+server.getNode().getAddress()+":4243");
+        DockerClientConfig.DockerClientConfigBuilder config = DockerClientConfig.createDefaultConfigBuilder();
+        config.withVersion("1.13");
+        config.withUri("http://" + server.getNode().getAddress() + ":4243");
+        DockerClient dockerClient = new DockerClientImpl(config.build());
         InspectContainerResponse inspectResponse = dockerClient.inspectContainerCmd(server.getContainerId()).exec();
         getLogger().info(""+inspectResponse.getNetworkSettings().getPorts());
         for (ExposedPort exposedPort : inspectResponse.getNetworkSettings().getPorts().getBindings().keySet()) {
