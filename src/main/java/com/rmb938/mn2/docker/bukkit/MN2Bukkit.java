@@ -27,7 +27,10 @@ import java.util.List;
 public class MN2Bukkit extends JavaPlugin {
 
     private ServerLoader serverLoader;
-    private MN2Server server;
+
+    public MN2Server getMN2Server() {
+        return serverLoader.loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
+    }
 
     @Override
     public void onEnable() {
@@ -95,7 +98,7 @@ public class MN2Bukkit extends JavaPlugin {
         NodeLoader nodeLoader = new NodeLoader(mongoDatabase, new BungeeTypeLoader(mongoDatabase, pluginLoader, serverTypeLoader));
         serverLoader = new ServerLoader(mongoDatabase, nodeLoader, serverTypeLoader);
 
-        server = serverLoader.loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
+        MN2Server server = serverLoader.loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
         if (server == null) {
             getLogger().severe("Could not find server data");
             getServer().shutdown();
@@ -126,7 +129,7 @@ public class MN2Bukkit extends JavaPlugin {
         }
 
         getServer().getScheduler().runTaskTimer(this, () -> {
-            MN2Server localServer = serverLoader.loadEntity(server.get_id());
+            MN2Server localServer = getMN2Server();
             if (localServer == null) {
                 getLogger().severe("Couldn't find server data stopping server");
                 getServer().shutdown();
@@ -143,15 +146,15 @@ public class MN2Bukkit extends JavaPlugin {
                 return;
             }
 
-            server.getPlayers().clear();
+            localServer.getPlayers().clear();
             for (Player player : Bukkit.getOnlinePlayers()) {
                 MN2Player mn2Player = new MN2Player();
                 mn2Player.setUuid(player.getUniqueId());
                 mn2Player.setPlayerName(player.getName());
-                mn2Player.setCurrentServer(server);
+                mn2Player.setCurrentServer(localServer);
             }
-            server.setLastUpdate(System.currentTimeMillis());
-            serverLoader.saveEntity(server);
+            localServer.setLastUpdate(System.currentTimeMillis());
+            serverLoader.saveEntity(localServer);
         }, 200L, 200L);
     }
 
@@ -159,9 +162,9 @@ public class MN2Bukkit extends JavaPlugin {
     public void onDisable() {
         getLogger().info("Stopping MN2 Bukkit");
         getServer().getScheduler().cancelAllTasks();
-
-        server.setLastUpdate(0);
-        serverLoader.saveEntity(server);
+        MN2Server localServer = getMN2Server();
+        localServer.setLastUpdate(0);
+        serverLoader.saveEntity(localServer);
     }
 
 }
