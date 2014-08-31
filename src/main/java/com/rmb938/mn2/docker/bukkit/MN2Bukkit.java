@@ -97,6 +97,7 @@ public class MN2Bukkit extends JavaPlugin {
         ServerTypeLoader serverTypeLoader = new ServerTypeLoader(mongoDatabase, pluginLoader, worldLoader);
         NodeLoader nodeLoader = new NodeLoader(mongoDatabase, new BungeeTypeLoader(mongoDatabase, pluginLoader, serverTypeLoader));
         serverLoader = new ServerLoader(mongoDatabase, nodeLoader, serverTypeLoader);
+        PlayerLoader playerLoader = new PlayerLoader(mongoDatabase, serverTypeLoader, new BungeeTypeLoader(mongoDatabase, pluginLoader, serverTypeLoader));
 
         MN2Server server = serverLoader.loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
         if (server == null) {
@@ -148,10 +149,10 @@ public class MN2Bukkit extends JavaPlugin {
 
             localServer.getPlayers().clear();
             for (Player player : Bukkit.getOnlinePlayers()) {
-                MN2Player mn2Player = new MN2Player();
-                mn2Player.setUuid(player.getUniqueId());
-                mn2Player.setPlayerName(player.getName());
-                mn2Player.setCurrentServer(localServer);
+                MN2Player mn2Player = playerLoader.loadPlayer(player.getUniqueId());
+                if (mn2Player != null) {
+                    localServer.getPlayers().add(mn2Player);
+                }
             }
             localServer.setLastUpdate(System.currentTimeMillis());
             serverLoader.saveEntity(localServer);
