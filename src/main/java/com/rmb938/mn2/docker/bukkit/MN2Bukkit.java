@@ -96,8 +96,8 @@ public class MN2Bukkit extends JavaPlugin {
         WorldLoader worldLoader = new WorldLoader(mongoDatabase);
         ServerTypeLoader serverTypeLoader = new ServerTypeLoader(mongoDatabase, pluginLoader, worldLoader);
         NodeLoader nodeLoader = new NodeLoader(mongoDatabase, new BungeeTypeLoader(mongoDatabase, pluginLoader, serverTypeLoader));
-        serverLoader = new ServerLoader(mongoDatabase, nodeLoader, serverTypeLoader);
         PlayerLoader playerLoader = new PlayerLoader(mongoDatabase, serverTypeLoader, new BungeeTypeLoader(mongoDatabase, pluginLoader, serverTypeLoader));
+        serverLoader = new ServerLoader(mongoDatabase, nodeLoader, serverTypeLoader, playerLoader);
 
         MN2Server server = serverLoader.loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
         if (server == null) {
@@ -128,6 +128,15 @@ public class MN2Bukkit extends JavaPlugin {
                 break;
             }
         }
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+
+            @Override
+            public void run() {
+                getLogger().info("Killing Server");
+                getServer().shutdown();
+            }
+        });
 
         getServer().getScheduler().runTaskTimer(this, () -> {
             MN2Server localServer = getMN2Server();
