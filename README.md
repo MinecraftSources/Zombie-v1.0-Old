@@ -1,4 +1,4 @@
-MN2-Bukkit
+Zombie
 ==========
 
 Bukkit plugin for MN2-Docker

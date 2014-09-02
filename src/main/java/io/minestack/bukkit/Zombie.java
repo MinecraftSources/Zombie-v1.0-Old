@@ -7,12 +7,12 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.mongodb.ServerAddress;
 import com.rabbitmq.client.Address;
-import io.minestack.db.Uranium;
+import io.minestack.db.DoubleChest;
 import io.minestack.db.database.*;
-import io.minestack.db.entity.UPlayer;
-import io.minestack.db.entity.UServer;
-import io.minestack.db.entity.UServerType;
-import io.minestack.db.entity.UWorld;
+import io.minestack.db.entity.DCPlayer;
+import io.minestack.db.entity.DCServer;
+import io.minestack.db.entity.DCServerType;
+import io.minestack.db.entity.DCWorld;
 import io.minestack.db.mongo.MongoDatabase;
 import io.minestack.db.rabbitmq.RabbitMQ;
 import org.bson.types.ObjectId;
@@ -26,15 +26,15 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Titanium48 extends JavaPlugin {
+public class Zombie extends JavaPlugin {
 
-    public UServer getMN2Server() {
-        return Uranium.getServerLoader().loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
+    public DCServer getMN2Server() {
+        return DoubleChest.getServerLoader().loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
     }
 
     @Override
     public void onEnable() {
-        getLogger().info("Starting Titanium48");
+        getLogger().info("Starting Zombie");
 
         String hosts = System.getenv("MONGO_HOSTS");
 
@@ -69,16 +69,22 @@ public class Titanium48 extends JavaPlugin {
             }
         }
 
-        Uranium.initDatabase(mongoAddresses, rabbitAddresses, username, password);
+        try {
+            DoubleChest.initDatabase(mongoAddresses, rabbitAddresses, username, password);
+        } catch (Exception e) {
+            e.printStackTrace();
+            getServer().shutdown();
+            return;
+        }
 
-        UServer server = Uranium.getServerLoader().loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
+        DCServer server = DoubleChest.getServerLoader().loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
         if (server == null) {
             getLogger().severe("Could not find server data");
             getServer().shutdown();
             return;
         }
 
-        UWorld world = server.getServerType().getDefaultWorld();
+        DCWorld world = server.getServerType().getDefaultWorld();
         getLogger().info("Setting up default world "+world.getName());
         WorldCreator worldCreator = new WorldCreator(world.getName());
         worldCreator.environment(org.bukkit.World.Environment.valueOf(world.getEnvironment().name()));
@@ -96,7 +102,7 @@ public class Titanium48 extends JavaPlugin {
             if (exposedPort.getPort() == 25565) {
                 int hostPort = inspectResponse.getNetworkSettings().getPorts().getBindings().get(exposedPort).getHostPort();
                 server.setPort(hostPort);
-                Uranium.getServerLoader().saveEntity(server);
+                DoubleChest.getServerLoader().saveEntity(server);
                 break;
             }
         }
@@ -111,7 +117,7 @@ public class Titanium48 extends JavaPlugin {
         });
 
         getServer().getScheduler().runTaskTimer(this, () -> {
-            UServer localServer = getMN2Server();
+            DCServer localServer = getMN2Server();
             if (localServer == null) {
                 getLogger().severe("Couldn't find server data stopping server");
                 getServer().shutdown();
@@ -130,23 +136,23 @@ public class Titanium48 extends JavaPlugin {
 
             localServer.getPlayers().clear();
             for (Player player : Bukkit.getOnlinePlayers()) {
-                UPlayer mn2Player = Uranium.getPlayerLoader().loadPlayer(player.getUniqueId());
+                DCPlayer mn2Player = DoubleChest.getPlayerLoader().loadPlayer(player.getUniqueId());
                 if (mn2Player != null) {
                     localServer.getPlayers().add(mn2Player);
                 }
             }
             localServer.setLastUpdate(System.currentTimeMillis());
-            Uranium.getServerLoader().saveEntity(localServer);
+            DoubleChest.getServerLoader().saveEntity(localServer);
         }, 200L, 200L);
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("Stopping Titanium48");
+        getLogger().info("Stopping Zombie");
         getServer().getScheduler().cancelAllTasks();
-        UServer localServer = getMN2Server();
+        DCServer localServer = getMN2Server();
         localServer.setLastUpdate(0);
-        Uranium.getServerLoader().saveEntity(localServer);
+        DoubleChest.getServerLoader().saveEntity(localServer);
     }
 
 }

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.minestack</groupId>
-    <artifactId>Titanium48</artifactId>
+    <artifactId>Zombie</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <distributionManagement>
@@ -109,7 +109,7 @@
     <dependencies>
         <dependency>
             <groupId>io.minestack</groupId>
-            <artifactId>Uranium</artifactId>
+            <artifactId>DoubleChest</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
