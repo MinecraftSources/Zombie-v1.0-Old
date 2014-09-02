@@ -26,7 +26,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MN2Bukkit extends JavaPlugin {
+public class Titanium48 extends JavaPlugin {
 
     public UServer getMN2Server() {
         return Uranium.getServerLoader().loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
@@ -34,7 +34,7 @@ public class MN2Bukkit extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        getLogger().info("Starting MN2 Bukkit");
+        getLogger().info("Starting Titanium48");
 
         String hosts = System.getenv("MONGO_HOSTS");
 
@@ -142,7 +142,7 @@ public class MN2Bukkit extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        getLogger().info("Stopping MN2 Bukkit");
+        getLogger().info("Stopping Titanium48");
         getServer().getScheduler().cancelAllTasks();
         UServer localServer = getMN2Server();
         localServer.setLastUpdate(0);
