@@ -1,4 +1,4 @@
-package com.rmb938.mn2.docker.bukkit;
+package io.minestack.bukkit;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
@@ -7,12 +7,12 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.mongodb.ServerAddress;
 import com.rabbitmq.client.Address;
-import com.rmb938.mn2.docker.db.database.*;
-import com.rmb938.mn2.docker.db.entity.MN2Player;
-import com.rmb938.mn2.docker.db.entity.MN2Server;
-import com.rmb938.mn2.docker.db.entity.MN2World;
-import com.rmb938.mn2.docker.db.mongo.MongoDatabase;
-import com.rmb938.mn2.docker.db.rabbitmq.RabbitMQ;
+import io.minestack.db.database.*;
+import io.minestack.db.entity.MN2Player;
+import io.minestack.db.entity.MN2Server;
+import io.minestack.db.entity.MN2World;
+import io.minestack.db.mongo.MongoDatabase;
+import io.minestack.db.rabbitmq.RabbitMQ;
 import org.bson.types.ObjectId;
 import org.bukkit.Bukkit;
 import org.bukkit.WorldCreator;
