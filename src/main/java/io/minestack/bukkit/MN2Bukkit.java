@@ -7,10 +7,12 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.mongodb.ServerAddress;
 import com.rabbitmq.client.Address;
+import io.minestack.db.Uranium;
 import io.minestack.db.database.*;
-import io.minestack.db.entity.MN2Player;
-import io.minestack.db.entity.MN2Server;
-import io.minestack.db.entity.MN2World;
+import io.minestack.db.entity.UPlayer;
+import io.minestack.db.entity.UServer;
+import io.minestack.db.entity.UServerType;
+import io.minestack.db.entity.UWorld;
 import io.minestack.db.mongo.MongoDatabase;
 import io.minestack.db.rabbitmq.RabbitMQ;
 import org.bson.types.ObjectId;
@@ -26,10 +28,8 @@ import java.util.List;
 
 public class MN2Bukkit extends JavaPlugin {
 
-    private ServerLoader serverLoader;
-
-    public MN2Server getMN2Server() {
-        return serverLoader.loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
+    public UServer getMN2Server() {
+        return Uranium.getServerLoader().loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
     }
 
     @Override
@@ -55,14 +55,6 @@ public class MN2Bukkit extends JavaPlugin {
             }
         }
 
-        if (mongoAddresses.isEmpty()) {
-            getLogger().severe("No valid mongo addresses");
-            getServer().shutdown();
-            return;
-        }
-        getLogger().info("Setting up mongo database mn2");
-        MongoDatabase mongoDatabase = new MongoDatabase(mongoAddresses, "mn2");
-
         hosts = System.getenv("RABBITMQ_HOSTS");
         String username = System.getenv("RABBITMQ_USERNAME");
         String password = System.getenv("RABBITMQ_PASSWORD");
@@ -77,36 +69,16 @@ public class MN2Bukkit extends JavaPlugin {
             }
         }
 
-        if (rabbitAddresses.isEmpty()) {
-            getLogger().severe("No valid RabbitMQ addresses");
-            return;
-        }
+        Uranium.initDatabase(mongoAddresses, rabbitAddresses, username, password);
 
-        RabbitMQ rabbitMQ = null;
-        try {
-            getLogger().info("Setting up RabbitMQ");
-            rabbitMQ = new RabbitMQ(rabbitAddresses, username, password);
-        } catch (IOException e) {
-            e.printStackTrace();
-            getServer().shutdown();
-            return;
-        }
-
-        PluginLoader pluginLoader = new PluginLoader(mongoDatabase);
-        WorldLoader worldLoader = new WorldLoader(mongoDatabase);
-        ServerTypeLoader serverTypeLoader = new ServerTypeLoader(mongoDatabase, pluginLoader, worldLoader);
-        NodeLoader nodeLoader = new NodeLoader(mongoDatabase, new BungeeTypeLoader(mongoDatabase, pluginLoader, serverTypeLoader));
-        PlayerLoader playerLoader = new PlayerLoader(mongoDatabase, serverTypeLoader, new BungeeTypeLoader(mongoDatabase, pluginLoader, serverTypeLoader));
-        serverLoader = new ServerLoader(mongoDatabase, nodeLoader, serverTypeLoader, playerLoader);
-
-        MN2Server server = serverLoader.loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
+        UServer server = Uranium.getServerLoader().loadEntity(new ObjectId(System.getenv("MY_SERVER_ID")));
         if (server == null) {
             getLogger().severe("Could not find server data");
             getServer().shutdown();
             return;
         }
 
-        MN2World world = server.getServerType().getDefaultWorld();
+        UWorld world = server.getServerType().getDefaultWorld();
         getLogger().info("Setting up default world "+world.getName());
         WorldCreator worldCreator = new WorldCreator(world.getName());
         worldCreator.environment(org.bukkit.World.Environment.valueOf(world.getEnvironment().name()));
@@ -124,7 +96,7 @@ public class MN2Bukkit extends JavaPlugin {
             if (exposedPort.getPort() == 25565) {
                 int hostPort = inspectResponse.getNetworkSettings().getPorts().getBindings().get(exposedPort).getHostPort();
                 server.setPort(hostPort);
-                serverLoader.saveEntity(server);
+                Uranium.getServerLoader().saveEntity(server);
                 break;
             }
         }
@@ -139,7 +111,7 @@ public class MN2Bukkit extends JavaPlugin {
         });
 
         getServer().getScheduler().runTaskTimer(this, () -> {
-            MN2Server localServer = getMN2Server();
+            UServer localServer = getMN2Server();
             if (localServer == null) {
                 getLogger().severe("Couldn't find server data stopping server");
                 getServer().shutdown();
@@ -158,13 +130,13 @@ public class MN2Bukkit extends JavaPlugin {
 
             localServer.getPlayers().clear();
             for (Player player : Bukkit.getOnlinePlayers()) {
-                MN2Player mn2Player = playerLoader.loadPlayer(player.getUniqueId());
+                UPlayer mn2Player = Uranium.getPlayerLoader().loadPlayer(player.getUniqueId());
                 if (mn2Player != null) {
                     localServer.getPlayers().add(mn2Player);
                 }
             }
             localServer.setLastUpdate(System.currentTimeMillis());
-            serverLoader.saveEntity(localServer);
+            Uranium.getServerLoader().saveEntity(localServer);
         }, 200L, 200L);
     }
 
@@ -172,9 +144,9 @@ public class MN2Bukkit extends JavaPlugin {
     public void onDisable() {
         getLogger().info("Stopping MN2 Bukkit");
         getServer().getScheduler().cancelAllTasks();
-        MN2Server localServer = getMN2Server();
+        UServer localServer = getMN2Server();
         localServer.setLastUpdate(0);
-        serverLoader.saveEntity(localServer);
+        Uranium.getServerLoader().saveEntity(localServer);
     }
 
 }
