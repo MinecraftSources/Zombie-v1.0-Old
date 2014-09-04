@@ -92,21 +92,6 @@ public class Zombie extends JavaPlugin {
             worldCreator.generator(world.getGenerator());
         }
 
-        DockerClientConfig.DockerClientConfigBuilder config = DockerClientConfig.createDefaultConfigBuilder();
-        config.withVersion("1.13");
-        config.withUri("http://" + server.getNode().getAddress() + ":4243");
-        DockerClient dockerClient = new DockerClientImpl(config.build());
-        InspectContainerResponse inspectResponse = dockerClient.inspectContainerCmd(server.getContainerId()).exec();
-        getLogger().info(""+inspectResponse.getNetworkSettings().getPorts());
-        for (ExposedPort exposedPort : inspectResponse.getNetworkSettings().getPorts().getBindings().keySet()) {
-            if (exposedPort.getPort() == 25565) {
-                int hostPort = inspectResponse.getNetworkSettings().getPorts().getBindings().get(exposedPort).getHostPort();
-                server.setPort(hostPort);
-                DoubleChest.getServerLoader().saveEntity(server);
-                break;
-            }
-        }
-
         Runtime.getRuntime().addShutdownHook(new Thread() {
 
             @Override
@@ -132,6 +117,25 @@ public class Zombie extends JavaPlugin {
                 getLogger().severe("Couldn't find type data stopping server");
                 getServer().shutdown();
                 return;
+            }
+
+            if (localServer.getPort() == -1) {
+                DockerClientConfig.DockerClientConfigBuilder config = DockerClientConfig.createDefaultConfigBuilder();
+                config.withVersion("1.14");
+                config.withUri("http://10.0.42.1:4243");
+                DockerClient dockerClient = new DockerClientImpl(config.build());
+                InspectContainerResponse inspectResponse = dockerClient.inspectContainerCmd(localServer.getContainerId()).exec();
+                getLogger().info(""+inspectResponse.getNetworkSettings().getPorts());
+                for (ExposedPort exposedPort : inspectResponse.getNetworkSettings().getPorts().getBindings().keySet()) {
+                    if (exposedPort.getPort() == 25565) {
+                        String containerAddress = inspectResponse.getNetworkSettings().getIpAddress();
+                        int hostPort = inspectResponse.getNetworkSettings().getPorts().getBindings().get(exposedPort).getHostPort();
+                        localServer.setPort(hostPort);
+                        localServer.setContainerAddress(containerAddress);
+                        DoubleChest.getServerLoader().saveEntity(localServer);
+                        break;
+                    }
+                }
             }
 
             localServer.getPlayers().clear();
